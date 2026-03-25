@@ -140,7 +140,7 @@ export async function savePersonalizationAction(id: string, formData: FormData) 
   if (existing) {
     await prisma.productPersonalizationTemplate.update({
       where: { id: existing.id },
-      data: { schemaJson },
+      data: { schemaJson: schemaJson as any },
     })
   } else {
     await prisma.productPersonalizationTemplate.create({

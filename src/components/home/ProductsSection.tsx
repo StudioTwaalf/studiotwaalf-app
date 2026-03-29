@@ -51,7 +51,7 @@ const PRODUCTS = [
     imageAlt: 'Gepersonaliseerde bloemenboog – Studio Twaalf',
     imageFocus: '50% 40%',
   },
-] as const
+]
 
 export default function ProductsSection() {
   return (
@@ -78,40 +78,21 @@ export default function ProductsSection() {
               key={product.title}
               className="group relative rounded-2xl border border-[#EDE7D9] bg-[#FAFAF7] hover:shadow-soft transition-all hover:-translate-y-0.5 overflow-hidden"
             >
-              {'image' in product ? (
-                /* Photo card */
-                <>
-                  <div className="relative w-full h-44 overflow-hidden">
-                    <Image
-                      src={product.image}
-                      alt={product.imageAlt}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      style={{
-                        objectPosition: product.imageFocus,
-                        filter: 'imageFilter' in product ? product.imageFilter : undefined,
-                      }}
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 320px"
-                    />
-                  </div>
-                  <div className="p-5">
-                    <h3 className="text-sm font-semibold text-studio-black mb-1.5">
-                      {product.title}
-                    </h3>
-                    <p className="text-[0.78rem] text-[#8A7A6A] leading-relaxed">
-                      {product.description}
-                    </p>
-                  </div>
-                </>
-              ) : (
-                /* Icon card */
-                <div className="p-6">
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 text-[#2C2416]"
-                    style={{ background: product.bg }}
-                  >
-                    {product.icon}
-                  </div>
+              <>
+                <div className="relative w-full h-44 overflow-hidden">
+                  <Image
+                    src={product.image}
+                    alt={product.imageAlt}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    style={{
+                      objectPosition: product.imageFocus,
+                      filter: product.imageFilter,
+                    }}
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 320px"
+                  />
+                </div>
+                <div className="p-5">
                   <h3 className="text-sm font-semibold text-studio-black mb-1.5">
                     {product.title}
                   </h3>
@@ -119,7 +100,7 @@ export default function ProductsSection() {
                     {product.description}
                   </p>
                 </div>
-              )}
+              </>
             </div>
           ))}
         </div>

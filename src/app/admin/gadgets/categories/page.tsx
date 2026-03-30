@@ -1,9 +1,8 @@
 import Link from 'next/link'
-
-export const dynamic = 'force-dynamic'
-
 import { prisma } from '@/lib/prisma'
 import CategoryDeleteButton from '@/components/admin/CategoryDeleteButton'
+
+export const dynamic = 'force-dynamic'
 
 export default async function AdminCategoriesPage() {
   const parents = await prisma.category.findMany({
@@ -19,6 +18,81 @@ export default async function AdminCategoriesPage() {
   })
 
   const total = parents.reduce((n, p) => n + 1 + p.children.length, 0)
+
+  const rows = parents.flatMap((parent) => {
+    const parentCanDelete  = parent._count.products === 0 && parent.children.length === 0
+    const parentBlockReason = parent._count.products > 0
+      ? `${parent._count.products} gadget(s) gekoppeld`
+      : parent.children.length > 0
+        ? 'Verwijder eerst de subcategorieën'
+        : undefined
+
+    const parentRow = (
+      <tr key={`p-${parent.id}`} className="hover:bg-gray-50 transition-colors">
+        <td className="px-5 py-3.5 font-semibold text-gray-900">{parent.nameNl}</td>
+        <td className="px-5 py-3.5 text-gray-500 font-mono text-xs">{parent.slug}</td>
+        <td className="px-5 py-3.5 text-gray-600">{parent._count.products}</td>
+        <td className="px-5 py-3.5 text-gray-600">{parent.sortOrder}</td>
+        <td className="px-5 py-3.5">
+          <span className={[
+            'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium',
+            parent.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500',
+          ].join(' ')}>
+            {parent.isActive ? 'Actief' : 'Inactief'}
+          </span>
+        </td>
+        <td className="px-3 py-3.5 text-right">
+          <CategoryDeleteButton
+            id={parent.id}
+            name={parent.nameNl}
+            canDelete={parentCanDelete}
+            blockReason={parentBlockReason}
+          />
+        </td>
+      </tr>
+    )
+
+    const childRows = parent.children.map((child) => {
+      const childCanDelete  = child._count.products === 0
+      const childBlockReason = child._count.products > 0
+        ? `${child._count.products} gadget(s) gekoppeld`
+        : undefined
+
+      return (
+        <tr key={`c-${child.id}`} className="hover:bg-gray-50 transition-colors bg-gray-50/50">
+          <td className="px-5 py-3 text-gray-700">
+            <span className="inline-flex items-center gap-2 pl-4">
+              <svg className="w-3 h-3 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              {child.nameNl}
+            </span>
+          </td>
+          <td className="px-5 py-3 text-gray-400 font-mono text-xs">{child.slug}</td>
+          <td className="px-5 py-3 text-gray-600">{child._count.products}</td>
+          <td className="px-5 py-3 text-gray-600">{child.sortOrder}</td>
+          <td className="px-5 py-3">
+            <span className={[
+              'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium',
+              child.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500',
+            ].join(' ')}>
+              {child.isActive ? 'Actief' : 'Inactief'}
+            </span>
+          </td>
+          <td className="px-3 py-3 text-right">
+            <CategoryDeleteButton
+              id={child.id}
+              name={child.nameNl}
+              canDelete={childCanDelete}
+              blockReason={childBlockReason}
+            />
+          </td>
+        </tr>
+      )
+    })
+
+    return [parentRow, ...childRows]
+  })
 
   return (
     <div>
@@ -73,82 +147,7 @@ export default async function AdminCategoriesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {parents.map((parent) => {
-                const parentCanDelete = parent._count.products === 0 && parent.children.length === 0
-                const parentBlockReason = parent._count.products > 0
-                  ? `${parent._count.products} gadget(s) gekoppeld`
-                  : parent.children.length > 0
-                    ? 'Verwijder eerst de subcategorieën'
-                    : undefined
-
-                return (
-                  <>
-                    {/* Parent row */}
-                    <tr key={parent.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-5 py-3.5 font-semibold text-gray-900">{parent.nameNl}</td>
-                      <td className="px-5 py-3.5 text-gray-500 font-mono text-xs">{parent.slug}</td>
-                      <td className="px-5 py-3.5 text-gray-600">{parent._count.products}</td>
-                      <td className="px-5 py-3.5 text-gray-600">{parent.sortOrder}</td>
-                      <td className="px-5 py-3.5">
-                        <span className={[
-                          'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium',
-                          parent.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500',
-                        ].join(' ')}>
-                          {parent.isActive ? 'Actief' : 'Inactief'}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3.5 text-right">
-                        <CategoryDeleteButton
-                          id={parent.id}
-                          name={parent.nameNl}
-                          canDelete={parentCanDelete}
-                          blockReason={parentBlockReason}
-                        />
-                      </td>
-                    </tr>
-
-                    {/* Children rows */}
-                    {parent.children.map((child) => {
-                      const childCanDelete = child._count.products === 0
-                      const childBlockReason = child._count.products > 0
-                        ? `${child._count.products} gadget(s) gekoppeld`
-                        : undefined
-
-                      return (
-                        <tr key={child.id} className="hover:bg-gray-50 transition-colors bg-gray-50/50">
-                          <td className="px-5 py-3 text-gray-700">
-                            <span className="inline-flex items-center gap-2 pl-4">
-                              <svg className="w-3 h-3 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                              </svg>
-                              {child.nameNl}
-                            </span>
-                          </td>
-                          <td className="px-5 py-3 text-gray-400 font-mono text-xs">{child.slug}</td>
-                          <td className="px-5 py-3 text-gray-600">{child._count.products}</td>
-                          <td className="px-5 py-3 text-gray-600">{child.sortOrder}</td>
-                          <td className="px-5 py-3">
-                            <span className={[
-                              'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium',
-                              child.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500',
-                            ].join(' ')}>
-                              {child.isActive ? 'Actief' : 'Inactief'}
-                            </span>
-                          </td>
-                          <td className="px-3 py-3 text-right">
-                            <CategoryDeleteButton
-                              id={child.id}
-                              name={child.nameNl}
-                              canDelete={childCanDelete}
-                              blockReason={childBlockReason}
-                            />
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </>
-                )
-              })}
+              {rows}
             </tbody>
           </table>
         </div>

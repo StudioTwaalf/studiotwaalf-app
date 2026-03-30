@@ -4,7 +4,13 @@ import { createCategoryAction } from './actions'
 
 export const dynamic = 'force-dynamic'
 
-export default async function NewCategoryPage() {
+export default async function NewCategoryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>
+}) {
+  const { error } = await searchParams
+
   const topLevel = await prisma.category.findMany({
     where: { parentId: null },
     orderBy: [{ sortOrder: 'asc' }, { nameNl: 'asc' }],
@@ -22,6 +28,12 @@ export default async function NewCategoryPage() {
 
       <div className="bg-white rounded-2xl border border-gray-200 p-6">
         <h1 className="text-lg font-semibold text-gray-900 mb-6">Categorie aanmaken</h1>
+
+        {error && (
+          <div className="mb-5 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+            {error}
+          </div>
+        )}
 
         <form action={createCategoryAction} className="space-y-5">
           <div>

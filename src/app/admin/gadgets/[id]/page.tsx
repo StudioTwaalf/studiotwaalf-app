@@ -12,7 +12,7 @@ interface Props {
 }
 
 export default async function EditGadgetPage({ params, searchParams }: Props) {
-  const [product, categories] = await Promise.all([
+  const [product, categoryParents] = await Promise.all([
     prisma.product.findUnique({
       where:   { id: params.id },
       include: {
@@ -21,7 +21,16 @@ export default async function EditGadgetPage({ params, searchParams }: Props) {
         variants: { orderBy: { sortOrder: 'asc' } },
       },
     }),
-    prisma.category.findMany({ where: { isActive: true }, orderBy: { nameNl: 'asc' } }),
+    prisma.category.findMany({
+      where:   { isActive: true, parentId: null },
+      orderBy: [{ sortOrder: 'asc' }, { nameNl: 'asc' }],
+      include: {
+        children: {
+          where:   { isActive: true },
+          orderBy: [{ sortOrder: 'asc' }, { nameNl: 'asc' }],
+        },
+      },
+    }),
   ])
 
   if (!product) notFound()
@@ -105,9 +114,17 @@ export default async function EditGadgetPage({ params, searchParams }: Props) {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white
                                  focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
-                      {categories.map((c) => (
-                        <option key={c.id} value={c.id}>{c.nameNl}</option>
-                      ))}
+                      {categoryParents.map((p) =>
+                        p.children.length > 0 ? (
+                          <optgroup key={p.id} label={p.nameNl}>
+                            {p.children.map((c) => (
+                              <option key={c.id} value={c.id}>{c.nameNl}</option>
+                            ))}
+                          </optgroup>
+                        ) : (
+                          <option key={p.id} value={p.id}>{p.nameNl}</option>
+                        )
+                      )}
                     </select>
                   </div>
                   <div>

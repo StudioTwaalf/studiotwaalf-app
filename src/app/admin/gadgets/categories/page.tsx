@@ -5,10 +5,19 @@ export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
 
 export default async function AdminCategoriesPage() {
-  const categories = await prisma.category.findMany({
+  const parents = await prisma.category.findMany({
+    where: { parentId: null },
     orderBy: [{ sortOrder: 'asc' }, { nameNl: 'asc' }],
-    include: { _count: { select: { products: true } } },
+    include: {
+      _count: { select: { products: true } },
+      children: {
+        orderBy: [{ sortOrder: 'asc' }, { nameNl: 'asc' }],
+        include: { _count: { select: { products: true } } },
+      },
+    },
   })
+
+  const total = parents.reduce((n, p) => n + 1 + p.children.length, 0)
 
   return (
     <div>
@@ -21,7 +30,7 @@ export default async function AdminCategoriesPage() {
           </nav>
           <h1 className="text-xl font-semibold text-gray-900">Categorieën</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            {categories.length} categorie{categories.length !== 1 ? 'ën' : ''}
+            {total} categorie{total !== 1 ? 'ën' : ''}
           </p>
         </div>
         <Link
@@ -36,7 +45,7 @@ export default async function AdminCategoriesPage() {
         </Link>
       </div>
 
-      {categories.length === 0 && (
+      {total === 0 && (
         <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-300">
           <p className="text-sm font-medium text-gray-500">Nog geen categorieën</p>
           <p className="text-xs text-gray-400 mt-1">Maak een categorie aan om gadgets in te groeperen.</p>
@@ -49,34 +58,64 @@ export default async function AdminCategoriesPage() {
         </div>
       )}
 
-      {categories.length > 0 && (
+      {total > 0 && (
         <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50">
                 <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wide px-5 py-3">Naam</th>
                 <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wide px-5 py-3">Slug</th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wide px-5 py-3">Producten</th>
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wide px-5 py-3">Gadgets</th>
                 <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wide px-5 py-3">Volgorde</th>
                 <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wide px-5 py-3">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {categories.map((c) => (
-                <tr key={c.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-5 py-3.5 font-medium text-gray-900">{c.nameNl}</td>
-                  <td className="px-5 py-3.5 text-gray-500 font-mono text-xs">{c.slug}</td>
-                  <td className="px-5 py-3.5 text-gray-600">{c._count.products}</td>
-                  <td className="px-5 py-3.5 text-gray-600">{c.sortOrder}</td>
-                  <td className="px-5 py-3.5">
-                    <span className={[
-                      'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium',
-                      c.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500',
-                    ].join(' ')}>
-                      {c.isActive ? 'Actief' : 'Inactief'}
-                    </span>
-                  </td>
-                </tr>
+              {parents.map((parent) => (
+                <>
+                  {/* Parent row */}
+                  <tr key={parent.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-5 py-3.5 font-semibold text-gray-900">
+                      {parent.nameNl}
+                    </td>
+                    <td className="px-5 py-3.5 text-gray-500 font-mono text-xs">{parent.slug}</td>
+                    <td className="px-5 py-3.5 text-gray-600">{parent._count.products}</td>
+                    <td className="px-5 py-3.5 text-gray-600">{parent.sortOrder}</td>
+                    <td className="px-5 py-3.5">
+                      <span className={[
+                        'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium',
+                        parent.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500',
+                      ].join(' ')}>
+                        {parent.isActive ? 'Actief' : 'Inactief'}
+                      </span>
+                    </td>
+                  </tr>
+
+                  {/* Children rows */}
+                  {parent.children.map((child) => (
+                    <tr key={child.id} className="hover:bg-gray-50 transition-colors bg-gray-50/50">
+                      <td className="px-5 py-3 text-gray-700">
+                        <span className="inline-flex items-center gap-2 pl-4">
+                          <svg className="w-3 h-3 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                          {child.nameNl}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 text-gray-400 font-mono text-xs">{child.slug}</td>
+                      <td className="px-5 py-3 text-gray-600">{child._count.products}</td>
+                      <td className="px-5 py-3 text-gray-600">{child.sortOrder}</td>
+                      <td className="px-5 py-3">
+                        <span className={[
+                          'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium',
+                          child.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500',
+                        ].join(' ')}>
+                          {child.isActive ? 'Actief' : 'Inactief'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </>
               ))}
             </tbody>
           </table>

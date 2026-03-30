@@ -14,7 +14,7 @@ export default async function AdminGadgetsPage({ searchParams }: Props) {
   const catId  = searchParams.category ?? ''
   const status = searchParams.status ?? ''
 
-  const [products, categories] = await Promise.all([
+  const [products, categoryParents] = await Promise.all([
     prisma.product.findMany({
       where: {
         ...(q     ? { nameNl: { contains: q, mode: 'insensitive' as const } } : {}),
@@ -28,7 +28,16 @@ export default async function AdminGadgetsPage({ searchParams }: Props) {
         _count: { select: { variants: true } },
       },
     }),
-    prisma.category.findMany({ where: { isActive: true }, orderBy: { nameNl: 'asc' } }),
+    prisma.category.findMany({
+      where:   { isActive: true, parentId: null },
+      orderBy: [{ sortOrder: 'asc' }, { nameNl: 'asc' }],
+      include: {
+        children: {
+          where:   { isActive: true },
+          orderBy: [{ sortOrder: 'asc' }, { nameNl: 'asc' }],
+        },
+      },
+    }),
   ])
 
   return (
@@ -65,7 +74,7 @@ export default async function AdminGadgetsPage({ searchParams }: Props) {
       {/* Search / filter */}
       <div className="mb-4">
         <Suspense>
-          <GadgetsSearchFilter categories={categories} />
+          <GadgetsSearchFilter categoryParents={categoryParents} />
         </Suspense>
       </div>
 

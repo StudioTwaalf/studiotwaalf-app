@@ -2,11 +2,20 @@
 
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 
-interface Props {
-  categories: { id: string; nameNl: string }[]
+interface Category {
+  id: string
+  nameNl: string
 }
 
-export default function GadgetsSearchFilter({ categories }: Props) {
+interface CategoryParent extends Category {
+  children: Category[]
+}
+
+interface Props {
+  categoryParents: CategoryParent[]
+}
+
+export default function GadgetsSearchFilter({ categoryParents }: Props) {
   const router   = useRouter()
   const pathname = usePathname()
   const sp       = useSearchParams()
@@ -47,9 +56,17 @@ export default function GadgetsSearchFilter({ categories }: Props) {
                    focus:outline-none focus:ring-2 focus:ring-indigo-500"
       >
         <option value="">Alle categorieën</option>
-        {categories.map((c) => (
-          <option key={c.id} value={c.id}>{c.nameNl}</option>
-        ))}
+        {categoryParents.map((p) =>
+          p.children.length > 0 ? (
+            <optgroup key={p.id} label={p.nameNl}>
+              {p.children.map((c) => (
+                <option key={c.id} value={c.id}>{c.nameNl}</option>
+              ))}
+            </optgroup>
+          ) : (
+            <option key={p.id} value={p.id}>{p.nameNl}</option>
+          )
+        )}
       </select>
 
       {/* Status filter */}

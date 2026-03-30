@@ -16,13 +16,14 @@ function toSlug(name: string): string {
 export async function createCategoryAction(formData: FormData) {
   const nameNl    = (formData.get('nameNl') as string).trim()
   const sortOrder = parseInt((formData.get('sortOrder') as string) || '0', 10)
+  const parentId  = (formData.get('parentId') as string) || null
 
   if (!nameNl) throw new Error('Naam is verplicht')
 
   const slug = toSlug(nameNl)
 
   await prisma.category.create({
-    data: { nameNl, slug, sortOrder },
+    data: { nameNl, slug, sortOrder, parentId },
   })
 
   redirect('/admin/gadgets/categories')

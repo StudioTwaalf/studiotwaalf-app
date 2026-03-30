@@ -1,7 +1,15 @@
 import Link from 'next/link'
+import { prisma } from '@/lib/prisma'
 import { createCategoryAction } from './actions'
 
-export default function NewCategoryPage() {
+export const dynamic = 'force-dynamic'
+
+export default async function NewCategoryPage() {
+  const topLevel = await prisma.category.findMany({
+    where: { parentId: null },
+    orderBy: [{ sortOrder: 'asc' }, { nameNl: 'asc' }],
+  })
+
   return (
     <div className="max-w-lg">
       <nav className="flex items-center gap-2 text-sm text-gray-400 mb-6">
@@ -22,11 +30,30 @@ export default function NewCategoryPage() {
             </label>
             <input
               id="nameNl" name="nameNl" type="text" required autoFocus
-              placeholder="bijv. Accessoires"
+              placeholder="bijv. Papier & Karton"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm
                          focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
             <p className="text-xs text-gray-400 mt-1">De slug wordt automatisch gegenereerd.</p>
+          </div>
+
+          <div>
+            <label htmlFor="parentId" className="block text-sm font-medium text-gray-700 mb-1">
+              Bovenliggende categorie
+            </label>
+            <select
+              id="parentId" name="parentId"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white
+                         focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="">— Geen (hoofd-categorie) —</option>
+              {topLevel.map((c) => (
+                <option key={c.id} value={c.id}>{c.nameNl}</option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-400 mt-1">
+              Laat leeg voor een hoofd-categorie, kies een categorie voor een subcategorie.
+            </p>
           </div>
 
           <div>

@@ -5,17 +5,41 @@ import CategoryDeleteButton from '@/components/admin/CategoryDeleteButton'
 export const dynamic = 'force-dynamic'
 
 export default async function AdminCategoriesPage() {
-  const parents = await prisma.category.findMany({
-    where: { parentId: null },
-    orderBy: [{ sortOrder: 'asc' }, { nameNl: 'asc' }],
-    include: {
-      _count: { select: { products: true } },
-      children: {
-        orderBy: [{ sortOrder: 'asc' }, { nameNl: 'asc' }],
-        include: { _count: { select: { products: true } } },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let parents: any[] = []
+  let dbError: string | null = null
+
+  try {
+    parents = await prisma.category.findMany({
+      where: { parentId: null },
+      orderBy: [{ sortOrder: 'asc' }, { nameNl: 'asc' }],
+      include: {
+        _count: { select: { products: true } },
+        children: {
+          orderBy: [{ sortOrder: 'asc' }, { nameNl: 'asc' }],
+          include: { _count: { select: { products: true } } },
+        },
       },
-    },
-  })
+    })
+  } catch (err) {
+    dbError = err instanceof Error ? err.message : 'Onbekende fout'
+  }
+
+  if (dbError) {
+    return (
+      <div>
+        <nav className="flex items-center gap-2 text-sm text-gray-400 mb-6">
+          <Link href="/admin/gadgets" className="hover:text-gray-600 transition-colors">Gadgets</Link>
+          <span>/</span>
+          <span className="text-gray-700 font-medium">Categorieën</span>
+        </nav>
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-6">
+          <p className="text-sm font-medium text-red-700 mb-1">Fout bij laden van categorieën</p>
+          <p className="text-xs text-red-500 font-mono">{dbError}</p>
+        </div>
+      </div>
+    )
+  }
 
   const total = parents.reduce((n, p) => n + 1 + p.children.length, 0)
 
@@ -52,7 +76,8 @@ export default async function AdminCategoriesPage() {
       </tr>
     )
 
-    const childRows = parent.children.map((child) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const childRows = parent.children.map((child: any) => {
       const childCanDelete  = child._count.products === 0
       const childBlockReason = child._count.products > 0
         ? `${child._count.products} gadget(s) gekoppeld`

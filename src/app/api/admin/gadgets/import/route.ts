@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 
 function isAdmin(): boolean {
@@ -85,20 +86,19 @@ export async function POST(req: NextRequest) {
       : undefined
 
     try {
-      await prisma.product.create({
-        data: {
-          slug,
-          nameNl:           naam,
-          basePriceCents:   priceCents,
-          ...(catId ? { categoryId: catId } : {}),
-          isActive:         parseBoolean(row['actief'], true),
-          isVisibleInDIY:   parseBoolean(row['diy'], true),
-          isVisibleInShop:  parseBoolean(row['shop'], false),
-          isPersonalizable: parseBoolean(row['personaliseerbaar'], false),
-          stockQuantity:    voorraad,
-          ...(configJson ? { configJson } : {}),
-        },
-      })
+      const data: Prisma.ProductUncheckedCreateInput = {
+        slug,
+        nameNl:           naam,
+        basePriceCents:   priceCents,
+        categoryId:       catId,
+        isActive:         parseBoolean(row['actief'], true),
+        isVisibleInDIY:   parseBoolean(row['diy'], true),
+        isVisibleInShop:  parseBoolean(row['shop'], false),
+        isPersonalizable: parseBoolean(row['personaliseerbaar'], false),
+        stockQuantity:    voorraad,
+        ...(configJson ? { configJson } : {}),
+      }
+      await prisma.product.create({ data })
       results.created++
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)

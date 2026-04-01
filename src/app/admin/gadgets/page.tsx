@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
+import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { parseProductDimensions } from '@/lib/product-dimensions'
 import GadgetDeleteButton from '@/components/admin/GadgetDeleteButton'
@@ -12,10 +13,10 @@ interface Props {
 
 type SortDir = 'asc' | 'desc'
 
-function buildOrderBy(sort: string, dir: SortDir) {
-  if (sort === 'name')  return [{ nameNl:          dir }]
-  if (sort === 'price') return [{ basePriceCents:   dir }]
-  return [{ isActive: 'desc' as const }, { sortOrder: 'asc' as const }, { createdAt: 'desc' as const }]
+function buildOrderBy(sort: string, dir: SortDir): Prisma.ProductOrderByWithRelationInput[] {
+  if (sort === 'name')  return [{ nameNl:        dir }]
+  if (sort === 'price') return [{ basePriceCents: dir }]
+  return [{ isActive: 'desc' }, { sortOrder: 'asc' }, { createdAt: 'desc' }]
 }
 
 function sortHref(
@@ -48,7 +49,7 @@ export default async function AdminGadgetsPage({ searchParams }: Props) {
         ...(status === 'active'   ? { isActive: true  } : {}),
         ...(status === 'inactive' ? { isActive: false } : {}),
       },
-      orderBy: buildOrderBy(sort, dir) as Parameters<typeof prisma.product.findMany>[0]['orderBy'],
+      orderBy: buildOrderBy(sort, dir),
       include: {
         category: true,
         _count: { select: { variants: true } },

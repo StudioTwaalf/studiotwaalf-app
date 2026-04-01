@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
+import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import ProductenSearchFilter from './ProductenSearchFilter'
 import CsvImportButton from '@/components/admin/CsvImportButton'
@@ -10,10 +11,10 @@ interface Props {
 
 type SortDir = 'asc' | 'desc'
 
-function buildOrderBy(sort: string, dir: SortDir) {
+function buildOrderBy(sort: string, dir: SortDir): Prisma.ProductOrderByWithRelationInput[] {
   if (sort === 'name')  return [{ nameNl:        dir }]
   if (sort === 'price') return [{ basePriceCents: dir }]
-  return [{ isActive: 'desc' as const }, { sortOrder: 'asc' as const }, { createdAt: 'desc' as const }]
+  return [{ isActive: 'desc' }, { sortOrder: 'asc' }, { createdAt: 'desc' }]
 }
 
 function sortHref(sp: Props['searchParams'], column: string): string {
@@ -42,7 +43,7 @@ export default async function AdminProductenPage({ searchParams }: Props) {
         ...(shop === 'ja'  ? { isVisibleInShop: true  } : {}),
         ...(shop === 'nee' ? { isVisibleInShop: false } : {}),
       },
-      orderBy: buildOrderBy(sort, dir) as Parameters<typeof prisma.product.findMany>[0]['orderBy'],
+      orderBy: buildOrderBy(sort, dir),
       include: {
         category: true,
         _count: { select: { variants: true } },

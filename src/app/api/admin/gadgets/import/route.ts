@@ -86,19 +86,20 @@ export async function POST(req: NextRequest) {
       : undefined
 
     try {
-      const data: Prisma.ProductUncheckedCreateInput = {
-        slug,
-        nameNl:           naam,
-        basePriceCents:   priceCents,
-        categoryId:       catId,
-        isActive:         parseBoolean(row['actief'], true),
-        isVisibleInDIY:   parseBoolean(row['diy'], true),
-        isVisibleInShop:  parseBoolean(row['shop'], false),
-        isPersonalizable: parseBoolean(row['personaliseerbaar'], false),
-        stockQuantity:    voorraad,
-        ...(configJson ? { configJson } : {}),
-      }
-      await prisma.product.create({ data })
+      await prisma.product.create({
+        data: {
+          slug,
+          nameNl:           naam,
+          basePriceCents:   priceCents,
+          isActive:         parseBoolean(row['actief'], true),
+          isVisibleInDIY:   parseBoolean(row['diy'], true),
+          isVisibleInShop:  parseBoolean(row['shop'], false),
+          isPersonalizable: parseBoolean(row['personaliseerbaar'], false),
+          stockQuantity:    voorraad,
+          ...(catId     ? { categoryId: catId }   : {}),
+          ...(configJson ? { configJson }          : {}),
+        } as Prisma.ProductUncheckedCreateInput,
+      })
       results.created++
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)

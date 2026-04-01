@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
           slug,
           nameNl:           naam,
           basePriceCents:   priceCents,
-          categoryId:       catId ?? null,
+          categoryId:       catId ?? undefined,
           isActive:         parseBoolean(row['actief'], true),
           isVisibleInDIY:   false,
           isVisibleInShop:  parseBoolean(row['webshop'], true),

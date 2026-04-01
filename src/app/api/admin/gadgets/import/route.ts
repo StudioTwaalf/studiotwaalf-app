@@ -55,7 +55,8 @@ export async function POST(req: NextRequest) {
 
   const results = { created: 0, errors: [] as string[] }
 
-  for (const [i, row] of rows.entries()) {
+  for (let i = 0; i < rows.length; i++) {
+    const row     = rows[i]
     const lineNum = i + 2
     const naam = row['naam']
     const prijs = row['prijs_euro']

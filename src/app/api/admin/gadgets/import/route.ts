@@ -24,10 +24,14 @@ function parseBoolean(v: string, defaultValue: boolean): boolean {
 
 function parseCSV(text: string): Record<string, string>[] {
   const lines = text.split('\n').map((l) => l.trim()).filter(Boolean)
-  if (lines.length < 2) return []
-  const headers = lines[0].split(',').map((h) => h.trim())
-  return lines.slice(1).map((line) => {
-    const values = line.split(',')
+  // Auto-detect delimiter
+  const sep = lines.join('').split(';').length > lines.join('').split(',').length ? ';' : ','
+  // Find header row (first line containing 'naam')
+  const headerIdx = lines.findIndex(l => l.toLowerCase().split(sep).includes('naam'))
+  if (headerIdx === -1) return []
+  const headers = lines[headerIdx].split(sep).map((h) => h.trim())
+  return lines.slice(headerIdx + 1).map((line) => {
+    const values = line.split(sep)
     const row: Record<string, string> = {}
     headers.forEach((h, i) => { row[h] = (values[i] ?? '').trim() })
     return row

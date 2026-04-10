@@ -65,6 +65,8 @@ interface Props {
   paperParam?:       string | null
   /** Journey type derived from the template category — used for funnel events. */
   journeyType:       BaseParams['journey_type']
+  /** Auto-open the personalization modal for this gadget ID on first render. */
+  initialModalGadgetId?: string | null
 }
 
 const STEPS = ['Ontwerp', 'Gadgets', 'Concept', 'Offerte']
@@ -197,6 +199,7 @@ export default function GadgetsPageClient({
   initialOverrides,
   paperParam,
   journeyType,
+  initialModalGadgetId,
 }: Props) {
   const router = useRouter()
 
@@ -221,6 +224,14 @@ export default function GadgetsPageClient({
   savedQuantitiesRef.current = savedQuantities
   globalRef.current          = global
   overridesRef.current       = overrides
+
+  // ── Auto-open modal from URL param (e.g. coming from webshop) ────────────────
+  useEffect(() => {
+    if (initialModalGadgetId && gadgets.some((g) => g.id === initialModalGadgetId)) {
+      setModalGadgetId(initialModalGadgetId)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // ── Derived data ─────────────────────────────────────────────────────────────
 

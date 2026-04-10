@@ -13,11 +13,14 @@ import Link from 'next/link'
 interface Props {
   diyTemplateId: string | null
   productName:   string
+  productId?:    string
 }
 
-export default function DiyRedirectBlock({ diyTemplateId, productName }: Props) {
-  const quickHref = diyTemplateId ? `/design/${diyTemplateId}/quick-gadgets` : '/templates'
-  const fullHref  = diyTemplateId ? `/design/${diyTemplateId}/concept`        : '/templates'
+export default function DiyRedirectBlock({ diyTemplateId, productName, productId }: Props) {
+  const quickHref = diyTemplateId
+    ? `/design/${diyTemplateId}/quick-gadgets${productId ? `?product=${productId}` : ''}`
+    : '/templates'
+  const fullHref  = diyTemplateId ? `/design/${diyTemplateId}/concept` : '/templates'
 
   return (
     <div className="space-y-3">

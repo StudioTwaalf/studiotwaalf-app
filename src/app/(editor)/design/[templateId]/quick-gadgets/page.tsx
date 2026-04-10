@@ -14,10 +14,11 @@ import { headers, cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 
 interface Props {
-  params: { templateId: string }
+  params:       { templateId: string }
+  searchParams: { product?: string }
 }
 
-export default async function QuickGadgetsPage({ params }: Props) {
+export default async function QuickGadgetsPage({ params, searchParams }: Props) {
   const cookieStore = cookies()
   const token = await getToken({
     req: {
@@ -49,6 +50,7 @@ export default async function QuickGadgetsPage({ params }: Props) {
     },
   })
 
-  // Go straight to gadgets
-  redirect(`/design/${params.templateId}/gadgets?design=${design.id}`)
+  // Go straight to gadgets; if a product was specified, auto-open its modal
+  const openParam = searchParams.product ? `&open=${searchParams.product}` : ''
+  redirect(`/design/${params.templateId}/gadgets?design=${design.id}${openParam}`)
 }

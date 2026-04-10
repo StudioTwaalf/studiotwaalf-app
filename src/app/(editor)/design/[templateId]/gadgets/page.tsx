@@ -14,7 +14,7 @@ import GadgetsPageClient from '@/components/GadgetsPageClient'
 
 interface Props {
   params:       { templateId: string }
-  searchParams: { design?: string; paper?: string }
+  searchParams: { design?: string; paper?: string; open?: string }
 }
 
 export default async function GadgetsPage({ params, searchParams }: Props) {
@@ -107,6 +107,7 @@ export default async function GadgetsPage({ params, searchParams }: Props) {
       initialOverrides={gadgetSelections.overrides}
       paperParam={searchParams.paper ?? null}
       journeyType={journeyType}
+      initialModalGadgetId={searchParams.open ?? null}
     />
   )
 }

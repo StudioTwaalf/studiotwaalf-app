@@ -248,6 +248,7 @@ export default function ProductDetailPage() {
               <DiyRedirectBlock
                 diyTemplateId={product.diyTemplateId}
                 productName={product.nameNl}
+                productId={product.id}
               />
             ) : (
               /* ── Normal cart flow ─────────────────────────────────────── */

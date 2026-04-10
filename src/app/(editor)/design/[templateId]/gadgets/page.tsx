@@ -63,7 +63,7 @@ export default async function GadgetsPage({ params, searchParams }: Props) {
     description:    p.descriptionNl ?? '',
     fromPriceCents: p.basePriceCents,
     personalizable: p.isPersonalizable,
-    emoji:          p.assets[0]?.url ?? undefined,
+    emoji:          p.mockupImageUrl ?? p.thumbnailImageUrl ?? p.assets[0]?.url ?? undefined,
     category:       p.category?.nameNl ?? undefined,
     previewConfig:  parsePreviewConfig(p.configJson),
     quantityConfig: parseQuantityConfig(p.configJson),

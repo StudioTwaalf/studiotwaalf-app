@@ -66,15 +66,12 @@ class VercelBlobProvider implements StorageProvider {
     const pathname = `${this.folder}/${Date.now()}-${safe}`
 
     const blob = await put(pathname, buffer, {
-      access: 'private',
+      access: 'public',
       contentType: mimeType,
     })
 
-    // Private stores return a downloadUrl that is accessible without auth headers
-    const url = ('downloadUrl' in blob && blob.downloadUrl) ? blob.downloadUrl as string : blob.url
-
     return {
-      url,
+      url: blob.url,
       mimeType,
       sizeBytes: buffer.length,
     }

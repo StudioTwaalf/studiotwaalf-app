@@ -691,14 +691,17 @@ export default function GadgetsPageClient({
 
           {/* ─ Mobile bottom nav ─ */}
           <div className="lg:hidden px-4 sm:px-6 pb-8 pt-2">
-            <div className="flex items-center justify-between gap-4 border-t border-[#E0D5C5]/60 pt-6">
-              <Link
-                href={`/design/${templateId}?design=${designId}`}
-                className="rounded-xl border border-[#E0D5C5] bg-white px-4 py-2.5 text-sm
-                           font-medium text-[#2C2416] hover:bg-[#F5F0E8] transition"
-              >
-                ← Ontwerp
-              </Link>
+            <div className={`flex gap-4 border-t border-[#E0D5C5]/60 pt-6
+                            ${templateDesign ? 'items-center justify-between' : 'justify-end'}`}>
+              {templateDesign && (
+                <Link
+                  href={`/design/${templateId}?design=${designId}`}
+                  className="rounded-xl border border-[#E0D5C5] bg-white px-4 py-2.5 text-sm
+                             font-medium text-[#2C2416] hover:bg-[#F5F0E8] transition"
+                >
+                  ← Ontwerp
+                </Link>
+              )}
               <button
                 onClick={handleContinue}
                 disabled={saving}
@@ -722,7 +725,7 @@ export default function GadgetsPageClient({
             {/* Live preview */}
             <div>
               <p className="text-[10px] font-semibold text-[#C4B8A0] uppercase tracking-wide mb-3">
-                Live preview
+                {templateDesign ? 'Live preview' : 'Jouw gadgets'}
               </p>
               {templateDesign ? (
                 <div className="rounded-2xl overflow-hidden">
@@ -732,12 +735,53 @@ export default function GadgetsPageClient({
                     paperId={paperParam ?? null}
                   />
                 </div>
-              ) : (
+              ) : selectedList.length === 0 ? (
+                /* No card + nothing selected yet */
                 <div className="rounded-2xl bg-[#F5F0E8] border border-[#E0D5C5]/60 aspect-[4/3]
-                               flex items-center justify-center">
-                  <p className="text-xs text-[#C4B8A0] text-center px-4">
-                    Preview niet beschikbaar
+                               flex flex-col items-center justify-center gap-2 px-4">
+                  <svg className="w-8 h-8 text-[#D4C5A9]" fill="none" stroke="currentColor"
+                       strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round"
+                      d="M12 4v16m8-8H4" />
+                  </svg>
+                  <p className="text-xs text-[#C4B8A0] text-center leading-relaxed">
+                    Kies hiernaast de gadgets<br/>die je wil personaliseren.
                   </p>
+                </div>
+              ) : (
+                /* No card + gadgets selected → show a mini grid of mockup images */
+                <div className={`grid gap-2 ${selectedList.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                  {selectedList.slice(0, 4).map((s) => {
+                    const g = gadgetMap.get(s.id)
+                    const imgSrc = g?.emoji && (g.emoji.startsWith('/') || g.emoji.startsWith('http'))
+                      ? g.emoji : null
+                    return (
+                      <div key={s.id}
+                           className="relative aspect-square rounded-xl overflow-hidden bg-[#F5F0E8]
+                                      border border-[#E0D5C5]/60 flex items-center justify-center">
+                        {imgSrc ? (
+                          <img src={imgSrc} alt={s.name}
+                               className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-3xl">📦</span>
+                        )}
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t
+                                        from-black/40 to-transparent px-2 py-1.5">
+                          <p className="text-[10px] text-white font-medium truncate leading-tight">
+                            {s.name}
+                          </p>
+                        </div>
+                      </div>
+                    )
+                  })}
+                  {selectedList.length > 4 && (
+                    <div className="aspect-square rounded-xl bg-[#F5F0E8] border border-[#E0D5C5]/60
+                                    flex items-center justify-center">
+                      <p className="text-sm font-semibold text-[#B5A48A]">
+                        +{selectedList.length - 4}
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -751,10 +795,12 @@ export default function GadgetsPageClient({
                 <p className="text-sm text-[#C4B8A0] italic">Nog niets gekozen.</p>
               ) : (
                 <ul className="space-y-1.5">
-                  <li className="flex items-center gap-2.5 text-sm text-[#2C2416]">
-                    <span className="text-base leading-none">🃏</span>
-                    <span className="font-medium truncate">{templateName}</span>
-                  </li>
+                  {templateDesign && (
+                    <li className="flex items-center gap-2.5 text-sm text-[#2C2416]">
+                      <span className="text-base leading-none">🃏</span>
+                      <span className="font-medium truncate">{templateName}</span>
+                    </li>
+                  )}
                   {Object.values(selected).map((s) => {
                     const qty    = savedQuantities[s.id] ?? 1
                     const gadget = gadgetMap.get(s.id)
@@ -804,14 +850,16 @@ export default function GadgetsPageClient({
                 'Bekijk jouw concept →'
               )}
             </button>
-            <Link
-              href={`/design/${templateId}?design=${designId}`}
-              className="block w-full text-center rounded-xl border border-[#E0D5C5] bg-white
-                         px-4 py-2.5 text-sm font-medium text-[#7A6A52]
-                         hover:bg-[#F5F0E8] hover:text-[#2C2416] transition"
-            >
-              ← Terug naar ontwerp
-            </Link>
+            {templateDesign && (
+              <Link
+                href={`/design/${templateId}?design=${designId}`}
+                className="block w-full text-center rounded-xl border border-[#E0D5C5] bg-white
+                           px-4 py-2.5 text-sm font-medium text-[#7A6A52]
+                           hover:bg-[#F5F0E8] hover:text-[#2C2416] transition"
+              >
+                ← Terug naar ontwerp
+              </Link>
+            )}
             <p className="text-center text-xs text-[#C4B8A0]">
               Vrijblijvend — je kan altijd aanpassen.
             </p>

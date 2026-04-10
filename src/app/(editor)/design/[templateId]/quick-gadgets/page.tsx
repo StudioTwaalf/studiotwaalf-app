@@ -45,7 +45,7 @@ export default async function QuickGadgetsPage({ params }: Props) {
       userId:     token.id as string,
       name:       `Gadgets – ${template.name}`,
       data:       {},   // empty — no card drawn
-      gadgets:    null,
+      gadgets:    undefined,
     },
   })
 

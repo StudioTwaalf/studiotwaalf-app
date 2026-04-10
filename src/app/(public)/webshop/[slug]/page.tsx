@@ -53,6 +53,8 @@ export default function ProductDetailPage() {
   const [selectedVariantId, setSelectedVariantId]   = useState<string | null>(null)
   const [quantity, setQuantity]                     = useState(1)
   const [personalization, setPersonalization]       = useState<Record<string, string>>({})
+  const [diyQty, setDiyQty]                        = useState(1)
+  const [showNoPersonalization, setShowNoPersonalization] = useState(false)
 
   const viewItemFiredRef = useRef(false)
 
@@ -244,12 +246,87 @@ export default function ProductDetailPage() {
             <hr className="border-[#F0EAD8]" />
 
             {product.requiresDiyFlow ? (
-              /* ── DIY redirect: replace cart CTA entirely ──────────────── */
-              <DiyRedirectBlock
-                diyTemplateId={product.diyTemplateId}
-                productName={product.nameNl}
-                productId={product.id}
-              />
+              /* ── DIY redirect + optional no-personalization cart ─────── */
+              <div className="space-y-4">
+                <DiyRedirectBlock
+                  diyTemplateId={product.diyTemplateId}
+                  productName={product.nameNl}
+                  productId={product.id}
+                />
+
+                {/* Divider */}
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 border-t border-[#EDE7D9]" />
+                  <span className="text-[11px] text-[#B5A48A] font-medium">of</span>
+                  <div className="flex-1 border-t border-[#EDE7D9]" />
+                </div>
+
+                {/* Bestellen zonder personalisatie — toggle */}
+                <button
+                  type="button"
+                  onClick={() => setShowNoPersonalization((v) => !v)}
+                  className="w-full flex items-center justify-between gap-2 text-left
+                             text-sm font-medium text-[#7A6A52] hover:text-studio-black transition-colors"
+                >
+                  <span>Bestellen zonder personalisatie</span>
+                  <svg
+                    width="14" height="14" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
+                    className={`shrink-0 transition-transform duration-200 ${showNoPersonalization ? 'rotate-180' : ''}`}
+                  >
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </button>
+
+                {showNoPersonalization && (
+                  <div className="space-y-4 pt-1">
+                    {/* Quantity */}
+                    <div>
+                      <p className="text-xs font-semibold text-[#7A6A52] mb-3">Aantal stuks</p>
+                      <div className="flex items-center border border-[#E0D5C5] rounded-xl overflow-hidden w-fit">
+                        <button
+                          type="button"
+                          onClick={() => setDiyQty(Math.max(1, diyQty - 1))}
+                          disabled={diyQty <= 1}
+                          className="w-10 h-10 flex items-center justify-center text-[#7A6A52]
+                                     hover:bg-[#F5F0E8] disabled:opacity-40 transition-colors"
+                          aria-label="Minder"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14" /></svg>
+                        </button>
+                        <span className="w-10 text-center text-sm font-semibold text-studio-black tabular-nums select-none border-x border-[#E0D5C5]">
+                          {diyQty}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setDiyQty(diyQty + 1)}
+                          className="w-10 h-10 flex items-center justify-center text-[#7A6A52]
+                                     hover:bg-[#F5F0E8] transition-colors"
+                          aria-label="Meer"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Add to cart */}
+                    <AddToCartButton
+                      productId={product.id}
+                      variantId={selectedVariantId}
+                      quantity={diyQty}
+                      personalization={{}}
+                      disabled={product.stockQuantity === 0}
+                      ecommerceItem={toEcommerceItem({
+                        id:       product.id,
+                        name:     product.nameNl,
+                        category: product.category.nameNl,
+                        variant:  selectedVariant?.name ?? selectedVariant?.sizeLabel,
+                        priceCents: selectedVariant?.priceCents ?? product.basePriceCents,
+                      })}
+                    />
+                  </div>
+                )}
+              </div>
             ) : (
               /* ── Normal cart flow ─────────────────────────────────────── */
               <>

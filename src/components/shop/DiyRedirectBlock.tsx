@@ -3,7 +3,10 @@
  *
  * Shown on a webshop product page when the product requires the DIY flow
  * (requiresDiyFlow = true). Replaces the normal AddToCartButton + personalization
- * fields with an elegant explanation and a CTA that leads into the design tool.
+ * fields with an elegant explanation and two CTAs:
+ *
+ *  1. "Start je ontwerp" → volledige DIY flow (kaartje + gadgets)
+ *  2. "Sla kaartje over" → direct naar gadget-keuze, zonder kaartje te ontwerpen
  *
  * Props:
  *  - diyTemplateId  optional Template ID → links to /design/[id]/concept
@@ -19,9 +22,8 @@ interface Props {
 }
 
 export default function DiyRedirectBlock({ diyTemplateId, productName }: Props) {
-  const href = diyTemplateId
-    ? `/design/${diyTemplateId}/concept`
-    : '/templates'
+  const fullHref  = diyTemplateId ? `/design/${diyTemplateId}/concept` : '/templates'
+  const quickHref = diyTemplateId ? `/design/${diyTemplateId}/quick-gadgets` : '/templates'
 
   return (
     <div className="space-y-3">
@@ -50,9 +52,9 @@ export default function DiyRedirectBlock({ diyTemplateId, productName }: Props) 
         </div>
       </div>
 
-      {/* Primary CTA */}
+      {/* Primary CTA — volledige flow */}
       <Link
-        href={href}
+        href={fullHref}
         className="flex items-center justify-center gap-2.5 w-full py-4 px-6 rounded-2xl
                    bg-[#2C2416] text-white text-sm font-semibold
                    hover:bg-[#3C3020] active:scale-[0.98]
@@ -66,6 +68,22 @@ export default function DiyRedirectBlock({ diyTemplateId, productName }: Props) 
         </svg>
         Start je ontwerp in de DIY tool
       </Link>
+
+      {/* Secondary CTA — sla kaartje over */}
+      {diyTemplateId && (
+        <Link
+          href={quickHref}
+          className="flex items-center justify-center gap-2 w-full py-3 px-6 rounded-2xl
+                     border border-[#D6C9A8] bg-white text-[#6B5230] text-sm font-medium
+                     hover:bg-[#FAF5EA] hover:border-[#C4A97A] active:scale-[0.98]
+                     transition-all duration-150"
+        >
+          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+          </svg>
+          Alleen gadgets kiezen (sla kaartje over)
+        </Link>
+      )}
 
       {/* Helper text */}
       <p className="text-[11px] text-center text-[#A0907A] leading-relaxed px-2">

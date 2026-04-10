@@ -41,6 +41,11 @@ import type {
   SelectedGadget,
   GadgetPersonalization,
 } from '@/lib/gadget-personalization'
+import {
+  getEffectivePersonalization,
+  getNameTextStyle,
+  getOverlayPositionClasses,
+} from '@/lib/gadget-personalization'
 import type { TemplateDesign } from '@/types/template'
 import {
   getDefaultQuantity,
@@ -755,6 +760,10 @@ export default function GadgetsPageClient({
                     const g = gadgetMap.get(s.id)
                     const imgSrc = g?.emoji && (g.emoji.startsWith('/') || g.emoji.startsWith('http'))
                       ? g.emoji : null
+                    const ep = getEffectivePersonalization(s.id, global, overrides)
+                    const displayName = ep.name?.trim()
+                    const textStyle = displayName ? getNameTextStyle(ep) : {}
+                    const posClasses = displayName ? getOverlayPositionClasses(ep) : ''
                     return (
                       <div key={s.id}
                            className="relative aspect-square rounded-xl overflow-hidden bg-[#F5F0E8]
@@ -764,6 +773,17 @@ export default function GadgetsPageClient({
                                className="w-full h-full object-cover" />
                         ) : (
                           <span className="text-3xl">📦</span>
+                        )}
+                        {/* Personalized name overlay */}
+                        {displayName && (
+                          <div className={`absolute px-2 py-1 text-center ${posClasses}`}>
+                            <span
+                              className="text-[11px] font-semibold leading-tight drop-shadow-sm"
+                              style={textStyle}
+                            >
+                              {displayName}
+                            </span>
+                          </div>
                         )}
                         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t
                                         from-black/40 to-transparent px-2 py-1.5">

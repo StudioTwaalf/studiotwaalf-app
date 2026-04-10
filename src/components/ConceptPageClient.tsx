@@ -16,6 +16,7 @@ import ProgressSteps from '@/components/ProgressSteps'
 import MockupComposition from '@/components/concept/MockupComposition'
 import type { TemplateDesign } from '@/types/template'
 import type { SelectedGadget } from '@/lib/gadget-personalization'
+import { getNameTextStyle, getOverlayPositionClasses } from '@/lib/gadget-personalization'
 import { PAPERS } from '@/data/papers'
 import { trackEvent } from '@/lib/analytics'
 import type { BaseParams } from '@/lib/analytics'
@@ -307,6 +308,9 @@ export default function ConceptPageClient({
                   }`}>
                     {gadgets.map((g) => {
                       const isUrl = g.emoji && (g.emoji.startsWith('/') || g.emoji.startsWith('http'))
+                      const displayName = g.personalization?.name?.trim()
+                      const textStyle = displayName ? getNameTextStyle(g.personalization ?? {}) : {}
+                      const posClasses = displayName ? getOverlayPositionClasses(g.personalization ?? {}) : ''
                       return (
                         <div
                           key={g.id}
@@ -320,13 +324,21 @@ export default function ConceptPageClient({
                           ) : (
                             <span className="text-5xl">{g.emoji ?? '📦'}</span>
                           )}
-                          {/* Name overlay */}
+                          {/* Personalized name overlay */}
+                          {displayName && (
+                            <div className={`absolute px-3 py-2 text-center ${posClasses}`}>
+                              <span
+                                className="text-sm font-semibold leading-tight drop-shadow-sm"
+                                style={textStyle}
+                              >
+                                {displayName}
+                              </span>
+                            </div>
+                          )}
+                          {/* Product name bar */}
                           <div className="absolute bottom-0 left-0 right-0 px-3 py-2"
                                style={{ background: 'linear-gradient(to top, rgba(44,36,22,0.55) 0%, transparent 100%)' }}>
                             <p className="text-xs font-semibold text-white truncate">{g.name}</p>
-                            {g.personalization?.name && (
-                              <p className="text-[10px] text-white/75 truncate">{g.personalization.name}</p>
-                            )}
                           </div>
                         </div>
                       )

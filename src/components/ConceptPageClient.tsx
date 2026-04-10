@@ -253,7 +253,9 @@ export default function ConceptPageClient({
             {designName ?? 'Jouw concept'}
           </h1>
           <p className="mt-3 text-base max-w-lg" style={{ color: '#7A6A5A' }}>
-            Bekijk je ontwerp zoals het er écht uit gaat zien — op luxe drukwerk, met de door jou gekozen opties.
+            {templateDesign
+              ? 'Bekijk je ontwerp zoals het er écht uit gaat zien — op luxe drukwerk, met de door jou gekozen opties.'
+              : 'Bekijk jouw gepersonaliseerde gadgets en ga verder naar de offerte.'}
           </p>
         </div>
 
@@ -285,24 +287,52 @@ export default function ConceptPageClient({
                 artboardId={activeArtboard ?? undefined}
               />
             ) : (
+              /* No card design — show a premium gadget grid instead */
               <div
-                className="rounded-3xl flex items-center justify-center"
+                className="rounded-3xl p-8"
                 style={{
                   background: 'linear-gradient(145deg, #F4EFE6 0%, #EDE5D5 50%, #E8DFC8 100%)',
                   minHeight:  360,
                 }}
               >
-                <div
-                  className="flex items-center justify-center rounded-xl text-xs"
-                  style={{
-                    width: 320, height: 240,
-                    background: '#F5F0E8',
-                    color: '#B0A898',
-                    border: '1px solid #E5DDD0',
-                  }}
-                >
-                  Geen voorbeeldweergave beschikbaar
-                </div>
+                {gadgets.length === 0 ? (
+                  <div className="flex items-center justify-center h-full min-h-[280px]">
+                    <p className="text-sm" style={{ color: '#B0A898' }}>Geen gadgets geselecteerd.</p>
+                  </div>
+                ) : (
+                  <div className={`grid gap-4 h-full ${
+                    gadgets.length === 1 ? 'grid-cols-1 max-w-xs mx-auto' :
+                    gadgets.length === 2 ? 'grid-cols-2' :
+                    'grid-cols-2 sm:grid-cols-3'
+                  }`}>
+                    {gadgets.map((g) => {
+                      const isUrl = g.emoji && (g.emoji.startsWith('/') || g.emoji.startsWith('http'))
+                      return (
+                        <div
+                          key={g.id}
+                          className="relative rounded-2xl overflow-hidden aspect-square flex items-center justify-center"
+                          style={{ background: '#F5F0E8', border: '1px solid rgba(255,255,255,0.6)' }}
+                        >
+                          {isUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={g.emoji!} alt={g.name}
+                                 className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-5xl">{g.emoji ?? '📦'}</span>
+                          )}
+                          {/* Name overlay */}
+                          <div className="absolute bottom-0 left-0 right-0 px-3 py-2"
+                               style={{ background: 'linear-gradient(to top, rgba(44,36,22,0.55) 0%, transparent 100%)' }}>
+                            <p className="text-xs font-semibold text-white truncate">{g.name}</p>
+                            {g.personalization?.name && (
+                              <p className="text-[10px] text-white/75 truncate">{g.personalization.name}</p>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
             )}
 
@@ -356,13 +386,13 @@ export default function ConceptPageClient({
                 label="Ontwerp"
                 value={designName ?? templateName}
               />
-              {selectedPaper && (
+              {templateDesign && selectedPaper && (
                 <ChoiceRow
                   label="Papiersoort"
                   value={`${selectedPaper.name} — ${selectedPaper.weight} g/m²`}
                 />
               )}
-              {!selectedPaper && (
+              {templateDesign && !selectedPaper && (
                 <ChoiceRow
                   label="Papiersoort"
                   value="Nog niet gekozen"
@@ -447,8 +477,8 @@ export default function ConceptPageClient({
                 </svg>
               </a>
 
-              {/* Paper selection reminder if no paper chosen */}
-              {!selectedPaper && (
+              {/* Paper selection reminder if no paper chosen (only when card designed) */}
+              {templateDesign && !selectedPaper && (
                 <a
                   href={editorUrl}
                   className="flex items-center justify-center gap-2 w-full rounded-2xl py-3 text-xs font-medium
@@ -465,15 +495,17 @@ export default function ConceptPageClient({
 
               {/* Back links */}
               <div className="flex gap-2">
-                <Link
-                  href={editorUrl}
-                  className="flex-1 flex items-center justify-center py-2.5 rounded-xl text-xs font-medium
-                             bg-white border border-[#E0D5C5] text-[#7A6A52]
-                             hover:bg-[#F5F0E8] hover:text-[#2C2416] transition-colors text-center
-                             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E7C46A]/60 focus-visible:ring-offset-1"
-                >
-                  ← Ontwerp aanpassen
-                </Link>
+                {templateDesign && (
+                  <Link
+                    href={editorUrl}
+                    className="flex-1 flex items-center justify-center py-2.5 rounded-xl text-xs font-medium
+                               bg-white border border-[#E0D5C5] text-[#7A6A52]
+                               hover:bg-[#F5F0E8] hover:text-[#2C2416] transition-colors text-center
+                               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E7C46A]/60 focus-visible:ring-offset-1"
+                  >
+                    ← Ontwerp aanpassen
+                  </Link>
+                )}
                 <Link
                   href={gadgetsUrl}
                   className="flex-1 flex items-center justify-center py-2.5 rounded-xl text-xs font-medium
@@ -512,7 +544,7 @@ export default function ConceptPageClient({
         <div className="lg:hidden mt-6 flex items-center justify-between gap-4 p-4 rounded-2xl
                         bg-white border border-[#EDE6D8] shadow-[0_4px_24px_rgba(44,36,22,0.06)]">
           <Link
-            href={editorUrl}
+            href={templateDesign ? editorUrl : gadgetsUrl}
             className="text-xs font-medium text-[#9A8E7D] hover:text-[#2C2416] transition-colors"
           >
             ← Terug

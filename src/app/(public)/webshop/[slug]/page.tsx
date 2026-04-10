@@ -33,6 +33,7 @@ interface Product {
   /** Optional Template ID for the DIY redirect CTA */
   diyTemplateId: string | null
   stockQuantity: number | null
+  thumbnailImageUrl: string | null
   category: { nameNl: string; slug: string }
   assets: { url: string; altNl: string | null }[]
   variants: Variant[]
@@ -112,7 +113,9 @@ export default function ProductDetailPage() {
       ? product.assets
       : variantThumb
         ? [{ url: variantThumb, altNl: selectedVariant?.name ?? product.nameNl }]
-        : []
+        : product.thumbnailImageUrl
+          ? [{ url: product.thumbnailImageUrl, altNl: product.nameNl }]
+          : []
 
   return (
     <div className="bg-white min-h-screen">

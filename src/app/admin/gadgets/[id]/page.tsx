@@ -5,6 +5,7 @@ import { parseProductDimensions } from '@/lib/product-dimensions'
 import { updateGadgetAction, deleteGadgetAction, toggleShopLinkAction } from './actions'
 import ImageUploadField from '@/components/admin/ImageUploadField'
 import VariantActionsRow from '@/components/admin/VariantActionsRow'
+import ProductAssetsManager from '@/components/admin/ProductAssetsManager'
 
 interface Props {
   params:       { id: string }
@@ -17,7 +18,7 @@ export default async function EditGadgetPage({ params, searchParams }: Props) {
       where:   { id: params.id },
       include: {
         category: true,
-        assets: { take: 1, orderBy: { sortOrder: 'asc' } },
+        assets: { orderBy: { sortOrder: 'asc' } },
         variants: { orderBy: { sortOrder: 'asc' } },
       },
     }),
@@ -317,6 +318,20 @@ export default async function EditGadgetPage({ params, searchParams }: Props) {
               </Link>
             </div>
           </form>
+
+          {/* Productafbeeldingen (gallerij) — buiten het form zodat uploads direct werken */}
+          <div className="mt-8 pt-8 border-t border-gray-100">
+            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">
+              Productafbeeldingen
+            </h2>
+            <p className="text-xs text-gray-400 mb-4">
+              Afbeeldingen die zichtbaar zijn op de productpagina in de webshop. De eerste afbeelding is de hoofdfoto.
+            </p>
+            <ProductAssetsManager
+              productId={product.id}
+              initialAssets={product.assets}
+            />
+          </div>
         </div>
 
         {/* Side panel */}
